@@ -103,6 +103,15 @@ public class SecurityConfig {
             .requestMatchers("/api/corrections/*/approve").authenticated()
             .requestMatchers("/api/corrections/*/reject").authenticated()
 
+            .requestMatchers(HttpMethod.GET, "/api/leaves/balance").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/leaves/requests").authenticated()
+            .requestMatchers(HttpMethod.GET, "/api/leaves/requests").authenticated()
+            .requestMatchers("/api/leaves/requests/pending").authenticated()
+            .requestMatchers("/api/leaves/requests/*/withdraw").authenticated()
+            .requestMatchers("/api/leaves/requests/*/approve").authenticated()
+            .requestMatchers("/api/leaves/requests/*/reject").authenticated()
+            .requestMatchers(HttpMethod.GET, "/api/leaves/summary").hasRole("ADMIN")
+
             .requestMatchers("/api/employees/**").hasRole("ADMIN")
             .requestMatchers(HttpMethod.POST, "/api/departments").hasRole("ADMIN")
             .requestMatchers(HttpMethod.PUT, "/api/departments/{id}").hasRole("ADMIN")
