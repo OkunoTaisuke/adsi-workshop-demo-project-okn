@@ -69,6 +69,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         validateMemo(memo);
 
+
         var now = Instant.now(clock);
         var record = AttendanceRecord.builder()
                 .id(UuidCreator.getTimeOrderedEpoch())

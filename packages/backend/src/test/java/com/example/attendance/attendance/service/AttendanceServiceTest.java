@@ -81,6 +81,8 @@ class AttendanceServiceTest {
         void clockIn_normal_createsRecord() {
             // Arrange
             when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employee.getId(), TODAY_TOKYO))
+                    .thenReturn(Optional.empty());
             when(attendanceRepository.save(any(AttendanceRecord.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -95,6 +97,26 @@ class AttendanceServiceTest {
             var captor = ArgumentCaptor.forClass(AttendanceRecord.class);
             verify(attendanceRepository).save(captor.capture());
             assertThat(captor.getValue().getEmployee().getId()).isEqualTo(employee.getId());
+        }
+
+        @Test
+        @DisplayName("出勤中に再度出勤打刻すると409エラー（ATT-04）")
+        void clockIn_alreadyClockedIn_throwsConflict() {
+            // Arrange
+            var openRecord = AttendanceRecord.builder()
+                    .id(UUID.randomUUID())
+                    .employee(employee)
+                    .workDate(TODAY_TOKYO)
+                    .clockIn(Instant.parse("2025-01-14T23:00:00Z"))
+                    .build();
+            when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+            when(attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employee.getId(), TODAY_TOKYO))
+                    .thenReturn(Optional.of(openRecord));
+
+            // Act & Assert
+            assertThatThrownBy(() -> service.clockIn(employee.getId()))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("Already clocked in");
         }
 
     }
