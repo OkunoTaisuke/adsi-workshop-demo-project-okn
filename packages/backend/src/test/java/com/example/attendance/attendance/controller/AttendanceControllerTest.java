@@ -76,7 +76,7 @@ class AttendanceControllerTest {
                 false,
                 null
         );
-        when(attendanceService.clockIn(EMPLOYEE_ID)).thenReturn(response);
+        when(attendanceService.clockIn(EMPLOYEE_ID, null)).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(post("/api/attendance/clock-in")
@@ -98,7 +98,7 @@ class AttendanceControllerTest {
                 false,
                 null
         );
-        when(attendanceService.clockOut(EMPLOYEE_ID)).thenReturn(response);
+        when(attendanceService.clockOut(EMPLOYEE_ID, null)).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(post("/api/attendance/clock-out")
