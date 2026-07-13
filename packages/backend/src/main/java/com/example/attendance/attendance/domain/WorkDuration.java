@@ -17,6 +17,27 @@ public record WorkDuration(
     private static final int BREAK_MINUTES_SHORT = 45;
     private static final int BREAK_MINUTES_LONG = 60;
 
+    public static WorkDuration calculate(List<AttendanceRecord> records, int standardWorkMinutes) {
+        int total = records.stream()
+            .filter(r -> r.getClockOut() != null)
+            .mapToInt(r -> (int) Duration.between(r.getClockIn(), r.getClockOut()).toMinutes())
+            .sum();
+
+        int breakMin;
+        if (total > BREAK_THRESHOLD_LONG) {
+            breakMin = BREAK_MINUTES_LONG;
+        } else if (total > BREAK_THRESHOLD_SHORT) {
+            breakMin = BREAK_MINUTES_SHORT;
+        } else {
+            breakMin = 0;
+        }
+
+        int work = total - breakMin;
+        int overtime = Math.max(0, work - standardWorkMinutes);
+
+        return new WorkDuration(total, breakMin, work, overtime);
+    }
+
     public static WorkDuration calculate(List<AttendanceRecord> records) {
         int total = records.stream()
             .filter(r -> r.getClockOut() != null)

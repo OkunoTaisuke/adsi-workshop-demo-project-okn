@@ -7,13 +7,19 @@ import com.example.attendance.department.entity.Department;
 import com.example.attendance.employee.entity.Employee;
 import com.example.attendance.employee.entity.Role;
 import com.example.attendance.employee.repository.EmployeeRepository;
+import com.example.attendance.leave.domain.LeaveBalance;
+import com.example.attendance.leave.repository.LeaveRequestRepository;
+import com.example.attendance.leave.service.LeaveGrantService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ReportServiceTest {
 
     @Mock
@@ -32,6 +39,12 @@ class ReportServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private LeaveRequestRepository leaveRequestRepository;
+
+    @Mock
+    private LeaveGrantService leaveGrantService;
 
     private ReportServiceImpl service;
 
@@ -42,7 +55,13 @@ class ReportServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ReportServiceImpl(attendanceRecordRepository, employeeRepository);
+        service = new ReportServiceImpl(attendanceRecordRepository, employeeRepository, leaveRequestRepository, leaveGrantService);
+
+        when(leaveRequestRepository.findByRequesterIdAndStatusOrderByCreatedAtDesc(any(), any()))
+            .thenReturn(List.of());
+        when(leaveGrantService.getBalance(any())).thenReturn(new LeaveBalance(
+            2025, BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.TEN, 0, 40,
+            BigDecimal.TEN, BigDecimal.ZERO, List.of()));
 
         engineering = Department.builder()
                 .id(UUID.randomUUID())

@@ -118,6 +118,37 @@ class WorkDurationTest {
         assertThat(result.overtimeMinutes()).isZero();
     }
 
+    @Test
+    @DisplayName("半日休暇の日: 所定4h、4h超過分が残業")
+    void calculateWithStandard_halfDay_overtimeAfterFourHours() {
+        var record = buildRecord(
+                Instant.parse("2025-01-15T00:00:00Z"),
+                Instant.parse("2025-01-15T05:00:00Z")
+        );
+
+        var result = WorkDuration.calculate(List.of(record), 240);
+
+        assertThat(result.totalMinutes()).isEqualTo(300);
+        assertThat(result.workMinutes()).isEqualTo(300);
+        assertThat(result.overtimeMinutes()).isEqualTo(60);
+    }
+
+    @Test
+    @DisplayName("時間単位休暇(2h)の日: 所定6h、6h超過分が残業")
+    void calculateWithStandard_hourlyLeave_adjustedStandard() {
+        var record = buildRecord(
+                Instant.parse("2025-01-15T00:00:00Z"),
+                Instant.parse("2025-01-15T07:30:00Z")
+        );
+
+        var result = WorkDuration.calculate(List.of(record), 360);
+
+        assertThat(result.totalMinutes()).isEqualTo(450);
+        assertThat(result.breakMinutes()).isEqualTo(45);
+        assertThat(result.workMinutes()).isEqualTo(405);
+        assertThat(result.overtimeMinutes()).isEqualTo(45);
+    }
+
     private AttendanceRecord buildRecord(Instant clockIn, Instant clockOut) {
         return AttendanceRecord.builder()
                 .id(UUID.randomUUID())
