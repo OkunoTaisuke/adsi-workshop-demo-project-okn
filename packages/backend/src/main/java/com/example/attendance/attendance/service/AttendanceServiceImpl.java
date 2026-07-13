@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class AttendanceServiceImpl implements AttendanceService {
 
+    private static final int MAX_MEMO_LENGTH = 200;
+
     private final AttendanceRecordRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final Clock clock;
@@ -51,8 +53,21 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     @Transactional
     public AttendanceRecordResponse clockIn(UUID employeeId) {
+        return clockIn(employeeId, null);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse clockIn(UUID employeeId, String memo) {
         var employee = findEmployeeOrThrow(employeeId);
         var today = LocalDate.now(clock);
+
+        attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employeeId, today)
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Already clocked in");
+                });
+
+        validateMemo(memo);
 
         var now = Instant.now(clock);
         var record = AttendanceRecord.builder()
@@ -60,6 +75,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .employee(employee)
                 .workDate(today)
                 .clockIn(now)
+                .memo(memo)
                 .corrected(false)
                 .build();
 
@@ -71,11 +87,22 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     @Transactional
     public AttendanceRecordResponse clockOut(UUID employeeId) {
+        return clockOut(employeeId, null);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse clockOut(UUID employeeId, String memo) {
         var today = LocalDate.now(clock);
         var record = attendanceRepository.findByEmployeeIdAndWorkDateAndClockOutIsNull(employeeId, today)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "No active clock-in found"));
 
+        validateMemo(memo);
+
         record.setClockOut(Instant.now(clock));
+        if (memo != null) {
+            record.setMemo(memo);
+        }
         var saved = attendanceRepository.save(record);
         log.info("Clock-out recorded for employee={} at={}", employeeId, saved.getClockOut());
         return AttendanceRecordResponse.from(saved);
@@ -219,6 +246,48 @@ public class AttendanceServiceImpl implements AttendanceService {
             date = date.plusDays(1);
         }
         return count;
+    }
+
+    @Override
+    @Transactional
+    public AttendanceRecordResponse updateMemo(UUID recordId, UUID employeeId, String memo) {
+        validateMemo(memo);
+        var record = findRecordOrThrow(recordId);
+        verifyRecordOwner(record, employeeId);
+        verifyNotClosedMonth(record);
+
+        record.setMemo(memo);
+        var saved = attendanceRepository.save(record);
+        return AttendanceRecordResponse.from(saved);
+    }
+
+    private void validateMemo(String memo) {
+        if (memo != null && memo.length() > MAX_MEMO_LENGTH) {
+            throw new IllegalArgumentException(
+                    "メモは%d文字以内で入力してください".formatted(MAX_MEMO_LENGTH));
+        }
+    }
+
+    private void verifyRecordOwner(AttendanceRecord record, UUID employeeId) {
+        if (!record.getEmployee().getId().equals(employeeId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Update memo is forbidden for other employee's record");
+        }
+    }
+
+    private void verifyNotClosedMonth(AttendanceRecord record) {
+        var currentMonth = YearMonth.from(LocalDate.now(clock));
+        var recordMonth = YearMonth.from(record.getWorkDate());
+        if (recordMonth.isBefore(currentMonth)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "月締め後のレコードは編集できません");
+        }
+    }
+
+    private AttendanceRecord findRecordOrThrow(UUID recordId) {
+        return attendanceRepository.findById(recordId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "AttendanceRecord with id '%s' was not found".formatted(recordId)));
     }
 
     private Employee findEmployeeOrThrow(UUID employeeId) {
