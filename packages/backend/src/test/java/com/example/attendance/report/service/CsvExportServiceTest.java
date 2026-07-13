@@ -27,10 +27,10 @@ class CsvExportServiceTest {
         var records = List.of(
                 new EmployeeMonthlyRecord(
                         UUID.randomUUID(), "田中太郎", "Engineering",
-                        20, 9600, 480, 3),
+                        20, 9600, 480, 3, java.math.BigDecimal.valueOf(2), java.math.BigDecimal.valueOf(15)),
                 new EmployeeMonthlyRecord(
                         UUID.randomUUID(), "鈴木花子", "Sales",
-                        22, 10560, 0, 1)
+                        22, 10560, 0, 1, java.math.BigDecimal.ONE, java.math.BigDecimal.valueOf(18))
         );
 
         // Act
@@ -38,9 +38,9 @@ class CsvExportServiceTest {
         var csv = new String(bytes, StandardCharsets.UTF_8);
 
         // Assert
-        assertThat(csv).contains("社員名,部署,出勤日数,勤務時間（分）,残業時間（分）,欠勤日数");
-        assertThat(csv).contains("田中太郎,Engineering,20,9600,480,3");
-        assertThat(csv).contains("鈴木花子,Sales,22,10560,0,1");
+        assertThat(csv).contains("社員名,部署,出勤日数,勤務時間（分）,残業時間（分）,欠勤日数,有給取得日数,有給残日数");
+        assertThat(csv).contains("田中太郎,Engineering,20,9600,480,3,2,15");
+        assertThat(csv).contains("鈴木花子,Sales,22,10560,0,1,1,18");
     }
 
     @Test
@@ -50,7 +50,7 @@ class CsvExportServiceTest {
         var records = List.of(
                 new EmployeeMonthlyRecord(
                         UUID.randomUUID(), "田中太郎", "Engineering",
-                        20, 9600, 480, 3)
+                        20, 9600, 480, 3, java.math.BigDecimal.valueOf(2), java.math.BigDecimal.valueOf(15))
         );
 
         // Act

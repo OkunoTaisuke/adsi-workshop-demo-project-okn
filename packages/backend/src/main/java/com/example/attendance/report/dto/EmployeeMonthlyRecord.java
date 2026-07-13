@@ -1,5 +1,6 @@
 package com.example.attendance.report.dto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record EmployeeMonthlyRecord(
@@ -9,5 +10,7 @@ public record EmployeeMonthlyRecord(
     int workDays,
     int totalWorkMinutes,
     int totalOvertimeMinutes,
-    int absentDays
+    int absentDays,
+    BigDecimal paidLeaveDays,
+    BigDecimal remainingLeaveDays
 ) {}

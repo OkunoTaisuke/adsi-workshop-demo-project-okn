@@ -37,6 +37,22 @@ Phase C: 実装（Unit 05 / 06 並列）
     ▼          ▼
   Unit 05    Unit 06
   勤怠修正   月次集計
+    │
+    ▼
+Phase D: 有給休暇（順次実装）
+  - Flyway V6, V7
+    │
+    ▼
+  Unit 07: 有給付与管理（D-1）
+  - LeaveGrant Entity, 付与ロジック, 残日数 API
+    │
+    ▼
+  Unit 08: 有給申請・承認（D-2）
+  - LeaveRequest Entity, 申請/承認/取り下げフロー
+    │
+    ▼
+  Unit 09: 有給統合（D-3）
+  - 勤務時間計算修正, 月次集計修正, 管理者サマリー
 ```
 
 ### Phase A で定義するもの
@@ -72,6 +88,9 @@ Phase C: 実装（Unit 05 / 06 並列）
 | 04 | [打刻・勤怠](unit_04_attendance.md) | B | attendance_records | clock-in/out, history, team, all |
 | 05 | [勤怠修正](unit_05_correction.md) | C | attendance_corrections | corrections, pending, approve, reject |
 | 06 | [月次集計・帳票](unit_06_report.md) | C | — | monthly, csv, pdf |
+| 07 | [有給付与管理](unit_07_leave-grant.md) | D-1 | leave_grants | GET leaves/balance |
+| 08 | [有給休暇申請・承認](unit_08_leave-request.md) | D-2 | leave_requests | POST/GET/PATCH leaves/requests |
+| 09 | [有給休暇 — 集計統合](unit_09_leave-integration.md) | D-3 | — | GET leaves/summary + 既存修正 |
 
 ## 実装順序
 
@@ -79,6 +98,9 @@ Phase C: 実装（Unit 05 / 06 並列）
 2. **Phase A** → インターフェース定義（Flyway V1〜V3 + Entity + Service interface + DTO）
 3. **Phase B: Unit 01〜04** → **並列実装**（Service 実装・Controller・テスト・Frontend）
 4. **Phase C: Unit 05 / 06** → **並列実装**（Flyway V4 + 修正・集計の実装）
+5. **Phase D-1: Unit 07** → 有給付与管理（Flyway V6 + 付与ロジック + 残日数 API）
+6. **Phase D-2: Unit 08** → 有給申請・承認（Flyway V7 + 申請フロー）
+7. **Phase D-3: Unit 09** → 有給統合（勤務時間計算修正 + 月次集計修正 + 管理者サマリー）
 
 ## Flyway マイグレーション順序
 
@@ -88,4 +110,7 @@ Phase C: 実装（Unit 05 / 06 並列）
 | V2 | `V2__create_employees.sql` | Phase A |
 | V3 | `V3__create_attendance_records.sql` | Phase A |
 | V4 | `V4__create_attendance_corrections.sql` | Phase C |
+| V5 | `V5__add_memo_to_attendance_records.sql` | Phase C |
+| V6 | `V6__create_leave_grants.sql` | Phase D-1 |
+| V7 | `V7__create_leave_requests.sql` | Phase D-2 |
 | V1000 | `V1000__seed_data.sql` | Phase B 完了後 |

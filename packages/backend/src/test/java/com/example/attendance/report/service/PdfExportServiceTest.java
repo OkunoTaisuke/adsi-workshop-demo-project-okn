@@ -26,7 +26,8 @@ class PdfExportServiceTest {
         var records = List.of(
                 new EmployeeMonthlyRecord(
                         UUID.randomUUID(), "Tanaka Taro", "Engineering",
-                        20, 9600, 480, 3)
+                        20, 9600, 480, 3,
+                        java.math.BigDecimal.valueOf(2), java.math.BigDecimal.valueOf(15))
         );
 
         // Act

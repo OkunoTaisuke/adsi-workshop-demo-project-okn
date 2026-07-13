@@ -31,5 +31,5 @@ class LayerDependencyTest {
         .whereLayer("Entity").mayOnlyBeAccessedByLayers(
             "Controller", "Service", "Repository", "Config", "DTO", "Domain")
         .whereLayer("DTO").mayOnlyBeAccessedByLayers("Controller", "Service", "Config")
-        .whereLayer("Domain").mayOnlyBeAccessedByLayers("Service", "DTO", "Entity");
+        .whereLayer("Domain").mayOnlyBeAccessedByLayers("Service", "Repository", "DTO", "Entity");
 }

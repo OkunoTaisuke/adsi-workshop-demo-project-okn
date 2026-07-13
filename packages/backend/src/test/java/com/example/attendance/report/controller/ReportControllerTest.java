@@ -70,7 +70,8 @@ class ReportControllerTest {
     private final List<EmployeeMonthlyRecord> sampleRecords = List.of(
             new EmployeeMonthlyRecord(
                     UUID.randomUUID(), "田中太郎", "Engineering",
-                    20, 9600, 480, 3)
+                    20, 9600, 480, 3,
+                    java.math.BigDecimal.valueOf(2), java.math.BigDecimal.valueOf(15))
     );
 
     @Test
