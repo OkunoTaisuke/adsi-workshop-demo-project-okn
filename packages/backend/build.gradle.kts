@@ -122,5 +122,10 @@ tasks.jacocoTestCoverageVerification {
 // --- Test ---
 tasks.withType<Test> {
 	useJUnitPlatform()
+	jvmArgs(
+		"-Djava.awt.headless=true",
+		"-Dsun.awt.fontconfig=${projectDir}/config/fonts/fontconfig.properties",
+		"-Dsun.java2d.fontpath=append:/opt/conda/fonts",
+	)
 	finalizedBy(tasks.jacocoTestReport)
 }
